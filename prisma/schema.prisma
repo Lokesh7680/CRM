@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  users     User[]
+  contacts  Contact[]
+  leads     Lead[]
+  campaigns Campaign[]
+  tasks     Task[]
+  notes     Note[]
+  products  Product[]
+  suppliers Supplier[]
+  purchaseOrders PurchaseOrder[]
+  invoices  Invoice[]
+  Opportunity Opportunity[]
+}
+
+model Supplier {
+  id             String       @id @default(cuid())
+  name           String
+  contactEmail   String?
+  phone          String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  products       Product[]
+  createdAt      DateTime     @default(now())
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  name           String
+  role           Role
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  SALES
+  INVENTORY_MANAGER
+}
+
+model Contact {
+  id             String       @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Lead {
+  id             String   @id @default(uuid())
+  name           String
+  email          String
+  phone          String?
+  source         String?
+  status         String   @default("New") // e.g., New, Contacted, Qualified, Lost
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Opportunity {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  value           Float
+  status          String   // e.g., "Open", "Won", "Lost"
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  organizationId  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Campaign {
+  id             String       @id @default(cuid())
+  name           String
+  type           String // e.g., Email, SMS, Social
+  status         String // e.g., Draft, Active, Completed
+  startDate      DateTime
+  endDate        DateTime
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  dueDate        DateTime
+  priority       String // e.g., Low, Medium, High
+  completed      Boolean      @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Note {
+  id             String       @id @default(cuid())
+  content        String
+  entityType     String // e.g., Lead, Contact, Opportunity
+  entityId       String // Reference ID of the entity
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  name           String
+  sku            String          @unique
+  price          Float // ✅ This must exist
+  stock          Int
+  supplierId     String?
+  supplier       Supplier?       @relation(fields: [supplierId], references: [id])
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime        @default(now())
+  PurchaseOrder  PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id             String       @id @default(cuid())
+  productId      String
+  product        Product      @relation(fields: [productId], references: [id])
+  quantity       Int
+  status         String // e.g., Requested, Ordered, Received
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
+
+model Invoice {
+  id             String       @id @default(cuid())
+  customerName   String
+  customerEmail  String
+  items          Json // Store array of line items
+  totalAmount    Float
+  status         String // e.g., Draft, Paid, Overdue
+  taxPercent     Float
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  createdAt      DateTime     @default(now())
+}
