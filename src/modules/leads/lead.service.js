@@ -27,10 +27,13 @@ const updateLeadById = async (id, data) => {
     data: {
       name: data.name,
       email: data.email,
+      phone: data.phone,
+      source: data.source,
       status: data.status,
     },
   });
 };
+
 
 const deleteLeadById = async (id) => {
   return await prisma.lead.delete({

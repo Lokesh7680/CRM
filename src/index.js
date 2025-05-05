@@ -17,6 +17,7 @@ const invoiceRoutes = require("./modules/invoicing/invoice.routes");
 const campaignTemplatesRoute = require("./modules/campaignTemplates/campaignTemplates.routes");
 const campaignQueueRoutes = require("./modules/campaigns/campaign.queue.routes");
 const analyticsRoutes = require('../routes/analytics');
+const emailRoutes = require("./modules/email/email.routes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/campaigns/queue", campaignQueueRoutes); // ✅ isolates queue rout
 // app.use("/api/queue", campaignQueueRoutes);
 app.use('/api/analytics', require('../routes/analytics'));
 app.use('/analytics', analyticsRoutes);
+app.use("/api", emailRoutes); // This enables /api/queue-email
 app.use("/api/tasks", taskRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/products", productRoutes);

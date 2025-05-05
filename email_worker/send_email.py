@@ -27,8 +27,8 @@ def render_email(campaignId, userId, userName, expiryDate):
     return html_output
 
 def send_email(to_email, subject, html_content):
-    from_email = "your@gmail.com"
-    password = "your_app_password"
+    from_email = "lokeshreddyneelapu@gmail.com"
+    password = "fwmx shnw gjrj rsrg"
 
     msg = MIMEText(html_content, "html")
     msg["Subject"] = subject

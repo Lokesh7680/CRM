@@ -1,37 +1,37 @@
 from fastapi import FastAPI, Request
-from pydantic import BaseModel
-from typing import List
-from email_worker.worker import send_email_task
+from fastapi.middleware.cors import CORSMiddleware
+from email_worker.worker import send_email_task  # ✅ Must match the Celery app's file and task
+import uvicorn
 
 app = FastAPI()
 
-class EmailPayload(BaseModel):
-    to: str
-    subject: str
-    campaignId: str
-    firstName: str
-    couponCode: str
-    expiryDate: str
+# ✅ Allow CORS (optional but useful for frontend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # change to specific frontend URL in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class QueueRequest(BaseModel):
-    emails: List[EmailPayload]
+@app.post("/api/queue-email")
+async def queue_email(request: Request):
+    body = await request.json()
+    emails = body.get("emails", [])
+    
+    for email in emails:
+        print("🔁 Queuing email for:", email.get("to"))
 
-@app.post("/queue-email")
-async def queue_email(request: QueueRequest):
-    print("📨 Received request to queue emails:")
-    print(request.emails)
+        result = send_email_task.delay(
+            email.get("to"),
+            email.get("subject"),
+            email.get("campaignId"),
+            email.get("userId"),
+            email.get("firstName", ""),
+            email.get("couponCode", ""),
+            email.get("expiryDate", "")
+        )
 
-    try:
-        for email in request.emails:
-            send_email_task.delay(
-                email.to,
-                email.subject,
-                email.campaignId,
-                email.firstName,
-                email.couponCode,
-                email.expiryDate
-            )
-        return {"status": "queued", "count": len(request.emails)}
-    except Exception as e:
-        print("❌ Error while queueing:", e)
-        return {"error": str(e)}
+        print("📨 Task queued with ID:", result.id)  # ✅ DEBUG: Confirm task pushed to Redis
+    
+    return {"message": "Emails queued successfully"}

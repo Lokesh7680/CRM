@@ -7,7 +7,8 @@ const {
   modifyOpportunity,
   removeOpportunity,
   fetchMonthlyRevenue,
-  fetchRevenueAnalytics // ✅ Add this here
+  fetchRevenueAnalytics,
+  fetchRevenueByStatus
 } = require("./opportunity.controller");
 
 
@@ -31,5 +32,8 @@ router.delete("/:id", authenticate, removeOpportunity);
 router.get("/analytics/monthly-revenue", authenticate, fetchMonthlyRevenue);
 
 router.get("/analytics/revenue", authenticate, fetchRevenueAnalytics);
+
+router.get("/analytics/monthly-revenue", authenticate, fetchMonthlyRevenue);
+router.get("/analytics/revenue", authenticate, fetchRevenueByStatus);
 
 module.exports = router;

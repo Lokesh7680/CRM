@@ -60,7 +60,7 @@ const Sidebar = () => {
           <ClipboardList size={18} />
           {!collapsed && "Campaigns"}
         </Link>
-        <Link to="/campaign-analytics/cmaax628h00018u91ebxvfuic">Test Campaign Analytics</Link>
+        <Link to="/campaign-analytics/cmaax628h00018u91ebxvfuic">Campaign Analytics</Link>
         <Link to="/email-templates" className="flex items-center gap-3 hover:text-yellow-300">
           <ClipboardList size={18} />
           {!collapsed && "Email Templates"}

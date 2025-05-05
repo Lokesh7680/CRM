@@ -17,6 +17,17 @@ const fetchMonthlyRevenue = async (req, res) => {
   }
 };
 
+const { getRevenueByStatus } = require("./opportunity.service");
+
+const fetchRevenueByStatus = async (req, res) => {
+  try {
+    const data = await getRevenueByStatus(req.user.organizationId);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const fetchOpportunities = async (req, res) => {
   try {
     const data = await getOpportunities(req.user.organizationId);
@@ -67,7 +78,7 @@ const { getRevenueAnalytics } = require("./opportunity.service");
 const fetchRevenueAnalytics = async (req, res) => {
   try {
     const data = await getRevenueAnalytics(req.user.organizationId);
-    res.json([data]);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -80,5 +91,6 @@ module.exports = {
   modifyOpportunity,
   removeOpportunity,
   fetchMonthlyRevenue,
-  fetchRevenueAnalytics
+  fetchRevenueAnalytics,
+  fetchRevenueByStatus
 };
