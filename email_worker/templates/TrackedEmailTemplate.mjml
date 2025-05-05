@@ -1,0 +1,37 @@
+<mjml>
+  <mj-body background-color="#f6f6f6">
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="20px" font-weight="bold">
+          Hello {{userName}},
+        </mj-text>
+
+        <mj-text font-size="16px">
+          We're excited to offer you a special discount! Click below to grab your offer now.
+        </mj-text>
+
+        <mj-button
+          background-color="#346DB7"
+          color="#ffffff"
+          href="http://localhost:3000/api/analytics/track/click/{{campaignId}}/{{userId}}/main-offer"
+        >
+          Claim Your Offer
+        </mj-button>
+
+        <mj-text font-size="14px" color="#999999">
+          Offer valid till: {{expiryDate}}
+        </mj-text>
+
+        <mj-raw>
+          <img
+            src="http://localhost:3000/api/analytics/track/open/{{campaignId}}/{{userId}}"
+            width="1"
+            height="1"
+            style="display:none"
+            alt="."
+          />
+        </mj-raw>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

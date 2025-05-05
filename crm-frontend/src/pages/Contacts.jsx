@@ -1,172 +1,137 @@
 // src/pages/Contacts.jsx
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { toast } from "react-toastify";
+import { unparse } from "papaparse";
 
 const Contacts = () => {
   const [contacts, setContacts] = useState([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", status: "Active" });
   const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const fetchContacts = async () => {
     try {
       const res = await axios.get("/contacts");
       setContacts(res.data);
     } catch (err) {
-      console.error("Failed to fetch contacts:", err);
+      toast.error("Failed to fetch contacts");
     }
   };
 
-  const handleAddContact = async (e) => {
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/contacts", { name, email, phone });
-      setContacts((prev) => [...prev, res.data]);
-      setName("");
-      setEmail("");
-      setPhone("");
+      if (editingId) {
+        await axios.put(`/contacts/${editingId}`, form);
+        toast.success("Contact updated successfully");
+      } else {
+        await axios.post("/contacts", form);
+        toast.success("Contact added successfully");
+      }
+      setForm({ name: "", email: "", phone: "", company: "", status: "Active" });
+      setEditingId(null);
+      fetchContacts();
     } catch (err) {
-      console.error("Failed to add contact:", err);
+      toast.error("Error saving contact");
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/contacts/${id}`);
-      setContacts((prev) => prev.filter((c) => c.id !== id));
+      toast.success("Contact deleted successfully");
+      fetchContacts();
     } catch (err) {
-      console.error("Failed to delete contact:", err);
+      toast.error("Error deleting contact");
     }
   };
 
-  const handleEditSave = async (id) => {
-    try {
-      const res = await axios.put(`/contacts/${id}`, editForm);
-      setContacts((prev) => prev.map((c) => (c.id === id ? res.data : c)));
-      setEditingId(null);
-    } catch (err) {
-      console.error("Failed to update contact:", err);
-    }
+  const handleEdit = (contact) => {
+    setEditingId(contact.id);
+    setForm({ name: contact.name, email: contact.email, phone: contact.phone, company: contact.company, status: contact.status });
+  };
+
+  const handleExportCSV = () => {
+    const filtered = contacts.filter((c) =>
+      (statusFilter === "All" || c.status === statusFilter) &&
+      c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    if (filtered.length === 0) return toast.info("No contacts to export");
+
+    const csv = unparse(filtered);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "contacts.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Contacts</h1>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Contacts</h2>
 
-      <form onSubmit={handleAddContact} className="mb-6 space-y-4">
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
-        <input
-          type="tel"
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Add Contact
+      <form onSubmit={handleSubmit} className="space-y-2 mb-6">
+        <input type="text" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border p-2" required />
+        <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border p-2" required />
+        <input type="text" placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full border p-2" />
+        <input type="text" placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="w-full border p-2" />
+        <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full border p-2">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+        <button type="submit" className={`px-4 py-2 rounded text-white ${editingId ? "bg-green-600" : "bg-blue-600"}`}>
+          {editingId ? "Update" : "Add Contact"}
         </button>
       </form>
 
-      {contacts.length === 0 ? (
-        <p>No contacts found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {contacts.map((contact) => (
-            <li
-              key={contact.id}
-              className="p-4 bg-white shadow rounded-md border border-gray-200"
-            >
-              {editingId === contact.id ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full p-1 border"
-                  />
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full p-1 border"
-                  />
-                  <input
-                    type="tel"
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    className="w-full p-1 border"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleEditSave(contact.id)}
-                    className="text-green-600 mr-4"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                    className="text-gray-600"
-                  >
-                    Cancel
-                  </button>
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div>
+          <label className="mr-2 font-medium">Filter:</label>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border p-2">
+            <option value="All">All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div>
+          <label className="mr-2 font-medium">Search:</label>
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border p-2" placeholder="Enter name" />
+        </div>
+        <button onClick={handleExportCSV} className="bg-gray-700 text-white px-4 py-2 rounded">Export to CSV</button>
+      </div>
+
+      <ul className="space-y-4">
+        {contacts
+          .filter((c) =>
+            (statusFilter === "All" || c.status === statusFilter) &&
+            c.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map((c) => (
+            <li key={c.id} className="border p-4 rounded shadow">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold">{c.name}</p>
+                  <p className="text-sm">{c.email}</p>
+                  <p className="text-sm">{c.phone}</p>
+                  <p className="text-sm">{c.company}</p>
+                  <p className="text-sm text-gray-500">{c.status}</p>
                 </div>
-              ) : (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-semibold">{contact.name}</p>
-                    <p className="text-sm text-gray-600">{contact.email}</p>
-                    <p className="text-sm text-gray-500">{contact.phone}</p>
-                  </div>
-                  <div className="space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingId(contact.id);
-                        setEditForm({ name: contact.name, email: contact.email, phone: contact.phone });
-                      }}
-                      className="text-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(contact.id)}
-                      className="text-red-600"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                <div className="space-x-2">
+                  <button onClick={() => handleEdit(c)} className="text-blue-600">Edit</button>
+                  <button onClick={() => handleDelete(c.id)} className="text-red-600">Delete</button>
                 </div>
-              )}
+              </div>
             </li>
           ))}
-        </ul>
-      )}
+      </ul>
     </div>
   );
 };

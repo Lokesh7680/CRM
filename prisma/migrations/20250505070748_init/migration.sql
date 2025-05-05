@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'SALES', 'INVENTORY_MANAGER');
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'MANAGER', 'USER', 'SALES', 'INVENTORY_MANAGER');
 
 -- CreateTable
 CREATE TABLE "Organization" (
@@ -41,8 +41,10 @@ CREATE TABLE "Contact" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
-    "organizationId" TEXT NOT NULL,
+    "company" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'Active',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "organizationId" TEXT NOT NULL,
 
     CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
@@ -69,6 +71,8 @@ CREATE TABLE "Opportunity" (
     "description" TEXT,
     "value" DOUBLE PRECISION NOT NULL,
     "status" TEXT NOT NULL,
+    "closeDate" TIMESTAMP(3),
+    "contactId" TEXT,
     "organizationId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -176,6 +180,9 @@ ALTER TABLE "Contact" ADD CONSTRAINT "Contact_organizationId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Lead" ADD CONSTRAINT "Lead_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

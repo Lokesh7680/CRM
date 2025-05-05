@@ -1,181 +1,171 @@
 // src/pages/Opportunities.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { toast } from "react-toastify";
 
 const Opportunities = () => {
-  const [opportunities, setOpportunities] = useState([]);
-  const [title, setTitle] = useState("");
-  const [status, setStatus] = useState("Prospecting");
-  const [value, setValue] = useState("");
+  const [opps, setOpps] = useState([]);
+  const [form, setForm] = useState({
+    title: "",
+    value: "",
+    description: "",
+    status: "Prospecting",
+    closeDate: "",
+    contactId: ""
+  });
   const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", status: "", value: "" });
 
-  const fetchOpportunities = async () => {
+  const fetchOpps = async () => {
     try {
       const res = await axios.get("/opportunities");
-      setOpportunities(res.data);
+      setOpps(res.data);
     } catch (err) {
-      console.error("Error fetching opportunities:", err);
+      toast.error("Failed to load opportunities");
     }
   };
 
-  const handleAdd = async (e) => {
+  useEffect(() => {
+    fetchOpps();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/opportunities", {
-        title,
-        status,
-        value: parseFloat(value),
+      const payload = {
+        ...form,
+        value: form.value ? Number(form.value) : null,
+        closeDate: form.closeDate || null,
+        contactId: form.contactId || null
+      };
+
+      if (editingId) {
+        await axios.put(`/opportunities/${editingId}`, payload);
+        toast.success("Updated successfully");
+      } else {
+        await axios.post("/opportunities", payload);
+        toast.success("Added successfully");
+      }
+
+      setForm({
+        title: "",
+        value: "",
+        description: "",
+        status: "Prospecting",
+        closeDate: "",
+        contactId: ""
       });
-      setOpportunities((prev) => [...prev, res.data]);
-      setTitle("");
-      setStatus("Prospecting");
-      setValue("");
+      setEditingId(null);
+      fetchOpps();
     } catch (err) {
-      console.error("Error adding opportunity:", err);
+      toast.error("Failed to save opportunity");
     }
+  };
+
+  const handleEdit = (opp) => {
+    setEditingId(opp.id);
+    setForm({
+      title: opp.title || "",
+      value: opp.value || "",
+      description: opp.description || "",
+      status: opp.status || "Prospecting",
+      closeDate: opp.closeDate ? opp.closeDate.split("T")[0] : "",
+      contactId: opp.contactId || ""
+    });
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/opportunities/${id}`);
-      setOpportunities((prev) => prev.filter((opp) => opp.id !== id));
+      toast.success("Deleted successfully");
+      fetchOpps();
     } catch (err) {
-      console.error("Error deleting opportunity:", err);
+      toast.error("Failed to delete opportunity");
     }
   };
-
-  const handleEditSave = async (id) => {
-    try {
-      const res = await axios.put(`/opportunities/${id}`, {
-        title: editForm.title,
-        status: editForm.status,
-        value: parseFloat(editForm.value),
-      });
-      setOpportunities((prev) =>
-        prev.map((opp) => (opp.id === id ? res.data : opp))
-      );
-      setEditingId(null);
-    } catch (err) {
-      console.error("Error updating opportunity:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOpportunities();
-  }, []);
 
   return (
-    <div>
+    <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Opportunities</h2>
-      <form onSubmit={handleAdd} className="space-y-4 mb-6">
+
+      <form onSubmit={handleSubmit} className="space-y-2 mb-6">
         <input
           type="text"
-          placeholder="Opportunity Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-2 border rounded"
+          placeholder="Title"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          className="w-full border p-2"
           required
         />
         <input
           type="number"
           placeholder="Value"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
+          value={form.value}
+          onChange={(e) => setForm({ ...form, value: e.target.value })}
+          className="w-full border p-2"
+        />
+        <textarea
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          className="w-full border p-2"
         />
         <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-full p-2 border rounded"
+          value={form.status}
+          onChange={(e) => setForm({ ...form, status: e.target.value })}
+          className="w-full border p-2"
         >
-          <option value="Prospecting">Prospecting</option>
-          <option value="Won">Won</option>
-          <option value="Lost">Lost</option>
+          <option>Prospecting</option>
+          <option>Proposal Sent</option>
+          <option>Negotiation</option>
+          <option>Closed Won</option>
+          <option>Closed Lost</option>
         </select>
+        <input
+          type="date"
+          value={form.closeDate}
+          onChange={(e) => setForm({ ...form, closeDate: e.target.value })}
+          className="w-full border p-2"
+        />
+        <input
+          type="text"
+          placeholder="Contact ID (optional)"
+          value={form.contactId}
+          onChange={(e) => setForm({ ...form, contactId: e.target.value })}
+          className="w-full border p-2"
+        />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className={`px-4 py-2 rounded text-white ${editingId ? "bg-green-600" : "bg-blue-600"}`}
         >
-          Add Opportunity
+          {editingId ? "Update Opportunity" : "Add Opportunity"}
         </button>
       </form>
 
-      <ul className="space-y-2">
-        {opportunities.map((opp) => (
-          <li
-            key={opp.id}
-            className="p-4 bg-white border shadow-sm rounded-md"
-          >
-            {editingId === opp.id ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  className="w-full p-1 border"
-                />
-                <input
-                  type="number"
-                  value={editForm.value}
-                  onChange={(e) => setEditForm({ ...editForm, value: e.target.value })}
-                  className="w-full p-1 border"
-                />
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full p-1 border"
-                >
-                  <option value="Prospecting">Prospecting</option>
-                  <option value="Won">Won</option>
-                  <option value="Lost">Lost</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => handleEditSave(opp.id)}
-                  className="text-green-600 mr-4"
-                >
-                  Save
+      <ul className="space-y-4">
+        {opps.map((opp) => (
+          <li key={opp.id} className="border p-4 rounded shadow">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold">{opp.title}</p>
+                <p className="text-sm">Value: ${opp.value}</p>
+                <p className="text-sm">Status: {opp.status}</p>
+                <p className="text-sm">Description: {opp.description || "N/A"}</p>
+                <p className="text-sm">
+                  Close Date: {opp.closeDate ? opp.closeDate.split("T")[0] : "N/A"}
+                </p>
+                {opp.contact?.name && (
+                  <p className="text-sm text-gray-500">Contact: {opp.contact.name}</p>
+                )}
+              </div>
+              <div className="space-x-2">
+                <button onClick={() => handleEdit(opp)} className="text-blue-600">
+                  Edit
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingId(null)}
-                  className="text-gray-600"
-                >
-                  Cancel
+                <button onClick={() => handleDelete(opp.id)} className="text-red-600">
+                  Delete
                 </button>
               </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">{opp.title}</p>
-                  <p className="text-gray-600">Status: {opp.status}</p>
-                  <p className="text-gray-500">Value: ${opp.value}</p>
-                </div>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => {
-                      setEditingId(opp.id);
-                      setEditForm({
-                        title: opp.title,
-                        status: opp.status,
-                        value: opp.value,
-                      });
-                    }}
-                    className="text-blue-600"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(opp.id)}
-                    className="text-red-600"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
+            </div>
           </li>
         ))}
       </ul>

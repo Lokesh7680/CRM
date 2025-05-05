@@ -1,15 +1,19 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // import toastify styles
-
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
 import Leads from "./pages/Leads";
 import Opportunities from "./pages/Opportunities";
+import Reports from "./pages/Reports";
+import Sales from "./pages/Sales";
+import Campaigns from "./pages/Campaigns";
+import MonthlyRevenue from "./pages/MonthlyRevenue";
 import Layout from "./components/Layout";
+import SalesAnalytics from "./pages/SalesAnalytics";
+import EmailTemplates from "./pages/EmailTemplates";
 import { useAuth } from "./context/AuthContext";
+import CampaignAnalyticsWrapper from "./pages/CampaignAnalyticsWrapper";
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -18,8 +22,8 @@ function ProtectedRoute({ children }) {
 
 function App() {
   return (
-    <Router>
-      <>
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-white transition-colors">
+      <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
 
@@ -67,13 +71,80 @@ function App() {
             }
           />
 
+          <Route
+            path="/sales"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Sales />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/campaigns"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Campaigns />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+        <Route
+            path="/campaign-analytics/:campaignId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CampaignAnalyticsWrapper />
+                </Layout>
+              </ProtectedRoute>
+            }
+        />
+
+
+        <Route path="/email-templates" element={<EmailTemplates />} />
+
+          <Route
+            path="/sales-analytics"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SalesAnalytics />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/analytics/monthly-revenue"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MonthlyRevenue />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route  
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Reports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+        
+
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-
-        {/* 👇 Add this toast container outside the Routes so it renders globally */}
-        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      </>
-    </Router>
+      </Router>
+    </div>
   );
 }
 

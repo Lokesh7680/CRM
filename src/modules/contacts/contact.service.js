@@ -14,6 +14,8 @@ const addContact = async (organizationId, data) => {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      company: data.company || "",  // ✅ Add this
+      status: data.status || "Active", // ✅ Add this
       organizationId,
     },
   });
@@ -43,6 +45,8 @@ const updateContactById = async (id, data) => {
       name: data.name,
       email: data.email,
       phone: data.phone,
+      company: data.company,
+      status: data.status
     },
   });
 };

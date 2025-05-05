@@ -7,21 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+  SALES
+  INVENTORY_MANAGER
+}
+
 model Organization {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  users     User[]
-  contacts  Contact[]
-  leads     Lead[]
-  campaigns Campaign[]
-  tasks     Task[]
-  notes     Note[]
-  products  Product[]
-  suppliers Supplier[]
+  id             String          @id @default(cuid())
+  name           String          @unique
+  createdAt      DateTime        @default(now())
+  users          User[]
+  contacts       Contact[]
+  leads          Lead[]
+  campaigns      Campaign[]
+  tasks          Task[]
+  notes          Note[]
+  products       Product[]
+  suppliers      Supplier[]
   purchaseOrders PurchaseOrder[]
-  invoices  Invoice[]
-  Opportunity Opportunity[]
+  invoices       Invoice[]
+  opportunities  Opportunity[]
 }
 
 model Supplier {
@@ -36,20 +44,14 @@ model Supplier {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String       @id @default(cuid())
+  email          String       @unique
   password       String
   name           String
   role           Role
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
-  createdAt      DateTime @default(now())
-}
-
-enum Role {
-  ADMIN
-  SALES
-  INVENTORY_MANAGER
+  createdAt      DateTime     @default(now())
 }
 
 model Contact {
@@ -57,9 +59,14 @@ model Contact {
   name           String
   email          String
   phone          String?
+  company        String?
+  status         String       @default("Active")
+  createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
-  createdAt      DateTime     @default(now())
+
+  // 🔽 Add this line for back-reference
+  opportunities Opportunity[]
 }
 
 model Lead {
@@ -73,31 +80,37 @@ model Lead {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Opportunity {
-  id              String   @id @default(cuid())
-  title           String
-  description     String?
-  value           Float
-  status          String   // e.g., "Open", "Won", "Lost"
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  organizationId  String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String       @id @default(cuid())
+  title          String
+  description    String?
+  value          Float
+  status         String
+  closeDate      DateTime?
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Campaign {
-  id             String       @id @default(cuid())
+  id             String              @id @default(cuid())
   name           String
-  type           String // e.g., Email, SMS, Social
-  status         String // e.g., Draft, Active, Completed
+  type           String
+  status         String
   startDate      DateTime
   endDate        DateTime
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  couponCode     String? // make optional first
+  expiryDate     DateTime? // make optional first
+  organization   Organization        @relation(fields: [organizationId], references: [id])
   organizationId String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime            @default(now())
+  analytics      CampaignAnalytics[]
 }
 
 model Task {
@@ -146,6 +159,14 @@ model PurchaseOrder {
   createdAt      DateTime     @default(now())
 }
 
+model CampaignTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  mjml      String
+  html      String
+  createdAt DateTime @default(now())
+}
+
 model Invoice {
   id             String       @id @default(cuid())
   customerName   String
@@ -157,4 +178,28 @@ model Invoice {
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   createdAt      DateTime     @default(now())
+}
+
+model EmailLog {
+  id          Int      @id @default(autoincrement())
+  to_email    String
+  campaign_id String
+  opened      Boolean  @default(false)
+  clicked     Boolean  @default(false)
+  sent_at     DateTime @default(now())
+}
+
+model CampaignAnalytics {
+  id         String   @id @default(cuid())
+  campaignId String
+  userId     String
+  opened     Boolean  @default(false)
+  clicked    Boolean  @default(false)
+  linkId     String? // Optional
+  createdAt  DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, userId])
+  @@unique([campaignId, userId, linkId])
 }

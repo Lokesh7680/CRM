@@ -20,4 +20,28 @@ const addCampaign = async (organizationId, data) => {
   });
 };
 
-module.exports = { fetchCampaigns, addCampaign };
+const updateCampaign = async (id, data) => {
+  return await prisma.campaign.update({
+    where: { id },
+    data: {
+      name: data.name,
+      type: data.type,
+      status: data.status,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+    },
+  });
+};
+
+const deleteCampaign = async (id) => {
+  return await prisma.campaign.delete({
+    where: { id },
+  });
+};
+
+module.exports = {
+  fetchCampaigns,
+  addCampaign,
+  updateCampaign,
+  deleteCampaign,
+};
