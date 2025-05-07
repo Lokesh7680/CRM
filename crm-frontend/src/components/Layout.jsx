@@ -1,13 +1,17 @@
 // src/components/Layout.jsx
 import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 
 const Layout = ({ children }) => {
   return (
-    <div className="flex">
+    <div className="bg-gray-50 min-h-screen">
       <Sidebar />
-      <main className="ml-64 w-full p-6 bg-gray-100 min-h-screen">
-        {children}
-      </main>
+      <div className="ml-64">
+        <Topbar />
+        <main className="pt-20 px-6 pb-10">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

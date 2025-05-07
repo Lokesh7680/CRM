@@ -32,8 +32,8 @@ const InvoiceChart = () => {
   }, []);
 
   return (
-    <div className="mt-10">
-      <h3 className="text-xl font-bold mb-4">Invoice Status Distribution</h3>
+    <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+      <h3 className="text-xl font-bold mb-4 text-[#032D60]">Invoice Status Distribution</h3>
       <PieChart width={360} height={300}>
         <Pie
           data={data}

@@ -1,23 +1,25 @@
+/* Remove center alignment and add a modern Salesforce layout base */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #F4F6F9;
+  color: #333;
 }
 
+/* Optional: logo styling for Salesforce-like hover effect */
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+  height: 3rem;
+  padding: 1rem;
+  transition: filter 300ms ease;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 0.75rem #0176D3);
 }
 
+/* Animation remains optional */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -33,10 +35,18 @@
   }
 }
 
+/* Updated card design per Salesforce UI style guide */
 .card {
-  padding: 2em;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #E5E5E5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
+/* Subtle muted text for secondary content */
 .read-the-docs {
   color: #888;
+  font-size: 0.875rem;
 }

@@ -1,120 +1,77 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import axios from "../api/axios";
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
   ClipboardList,
-  BarChart2,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
   ShoppingCart,
+  FileText,
+  PieChart,
+  Mail,
+  BarChart2,
+  Settings,
+  LogOut,
 } from "lucide-react";
 
 const Sidebar = () => {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
-  const [campaigns, setCampaigns] = useState([]);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  // useEffect(() => {
-  //   const fetchCampaigns = async () => {
-  //     try {
-  //       const res = await axios.get("/campaigns");
-  //       console.log("Fetched campaigns:", res.data); // 🔍 Check this in DevTools
-  //       setCampaigns(res.data);
-  //     } catch (err) {
-  //       console.error("Failed to fetch campaigns:", err);
-  //     }
-  //   };
-  
-  //   fetchCampaigns();
-  // }, []);
-  
-  return (
-    <aside
-      className={`${
-        collapsed ? "w-20" : "w-64"
-      } h-screen bg-gray-900 text-white p-4 fixed transition-all duration-300`}
+  const navItem = (to, label, Icon) => (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700 ${
+          isActive ? "text-blue-700 font-semibold bg-blue-100" : "text-blue-600"
+        }`
+      }
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className={`text-2xl font-bold ${collapsed ? "hidden" : "block"}`}>CRM</h2>
-        <button onClick={() => setCollapsed(!collapsed)}>
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+      <Icon size={18} />
+      <span>{label}</span>
+    </NavLink>
+  );
+
+  return (
+    <section className="navigation w-64 min-h-screen bg-white border-r border-gray-200 p-4 space-y-6">
+      <div>
+        <p className="text-xs text-gray-500 uppercase mb-2">Main</p>
+        <div className="space-y-1">
+          {navItem("/dashboard", "Dashboard", LayoutDashboard)}
+          {navItem("/contacts", "Contacts", Users)}
+          {navItem("/leads", "Leads", ClipboardList)}
+          {navItem("/opportunities", "Opportunities", ClipboardList)}
+        </div>
       </div>
 
-      <nav className="space-y-4">
-        <Link to="/dashboard" className="flex items-center gap-3 hover:text-yellow-300">
-          <LayoutDashboard size={18} />
-          {!collapsed && "Dashboard"}
-        </Link>
-        <Link to="/contacts" className="flex items-center gap-3 hover:text-yellow-300">
-          <Users size={18} />
-          {!collapsed && "Contacts"}
-        </Link>
-        <Link to="/leads" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Leads"}
-        </Link>
-        <Link to="/opportunities" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Opportunities"}
-        </Link>
-        <Link to="/sales" className="flex items-center gap-3 hover:text-yellow-300">
-          <ShoppingCart size={18} />
-          {!collapsed && "Sales"}
-        </Link>
-        <Link to="/campaigns" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Campaigns"}
-        </Link>
+      <div>
+        <p className="text-xs text-gray-500 uppercase mb-2">Sales</p>
+        <div className="space-y-1">
+          {navItem("/sales", "Sales", ShoppingCart)}
+          {navItem("/invoices", "Invoices", FileText)}
+          {navItem("/sales-analytics", "Sales Analytics", PieChart)}
+          {navItem("/analytics/monthly-revenue", "Monthly Revenue", PieChart)}
+        </div>
+      </div>
 
-        <Link to="/invoices" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Invoices"}
-        </Link>
+      <div>
+        <p className="text-xs text-gray-500 uppercase mb-2">Marketing</p>
+        <div className="space-y-1">
+          {navItem("/campaigns", "Campaigns", ClipboardList)}
+          {navItem("/email-templates", "Email Templates", Mail)}
+        </div>
+      </div>
 
+      <div>
+        <p className="text-xs text-gray-500 uppercase mb-2">Productivity</p>
+        <div className="space-y-1">
+          {navItem("/tasks", "Tasks", ClipboardList)}
+          {navItem("/reports", "Reports", BarChart2)}
+        </div>
+      </div>
 
-        {/* <Link to="/campaigns" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Campaigns A"}
-        </Link> */}
-        <Link to="/tasks">Tasks</Link>
-
-
-        <Link to="/email-templates" className="flex items-center gap-3 hover:text-yellow-300">
-          <ClipboardList size={18} />
-          {!collapsed && "Email Templates"}
-        </Link>
-        <Link to="/reports" className="flex items-center gap-3 hover:text-yellow-300">
-          <BarChart2 size={18} />
-          {!collapsed && "Reports"}
-        </Link>
-        <Link to="/sales-analytics" className="flex items-center gap-3 hover:text-yellow-300">
-          <BarChart2 size={18} />
-          {!collapsed && "Sales Analytics"}
-        </Link>
-        <Link to="/analytics/monthly-revenue" className="flex items-center gap-3 hover:text-yellow-300">
-          <BarChart2 size={18} />
-          {!collapsed && "Monthly Revenue"}
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 hover:text-red-400 mt-6"
-        >
-          <LogOut size={18} />
-          {!collapsed && "Logout"}
-        </button>
-      </nav>
-    </aside>
+      <div className="mt-auto border-t pt-4">
+        <div className="space-y-1">
+          {navItem("/settings", "Settings", Settings)}
+          {navItem("/logout", "Logout", LogOut)}
+        </div>
+      </div>
+    </section>
   );
 };
 
