@@ -22,18 +22,29 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
 
-
-@app.task(name="send_email_task")  # ✅ Registered task name
+@app.task(name="send_email_task")
 def send_email_task(to, subject, campaign_id, user_id, first_name, coupon_code, expiry_date):
     print("📨 Sending Email to:", to)
-    
-    message = MIMEMultipart()
+
+    message = MIMEMultipart("alternative")
     message["From"] = SMTP_USER
     message["To"] = to
     message["Subject"] = subject
 
-    body = f"Hi {first_name or 'there'}, this is a test email.\nCoupon: {coupon_code}\nExpires: {expiry_date}"
-    message.attach(MIMEText(body, "plain"))
+    template_path = os.path.join(os.path.dirname(__file__), "compiled_template.html")
+    with open(template_path, "r") as f:
+        html_template = f.read()
+
+    # 🔁 Replace placeholders
+    html_content = html_template.replace("{{firstName}}", first_name or "there")
+    html_content = html_content.replace("{{couponCode}}", coupon_code or "")
+    html_content = html_content.replace("{{expiryDate}}", expiry_date or "")
+    html_content = html_content.replace("{{campaignId}}", campaign_id or "")
+    html_content = html_content.replace("{{userId}}", user_id or "")
+
+    # Attach HTML content
+    html_part = MIMEText(html_content, "html")
+    message.attach(html_part)
 
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:

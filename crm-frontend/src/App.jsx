@@ -13,7 +13,14 @@ import Layout from "./components/Layout";
 import SalesAnalytics from "./pages/SalesAnalytics";
 import EmailTemplates from "./pages/EmailTemplates";
 import { useAuth } from "./context/AuthContext";
-import CampaignAnalyticsWrapper from "./pages/CampaignAnalyticsWrapper";
+// import CampaignAnalyticsWrapper from "./pages/CampaignAnalyticsWrapper";
+import CampaignAnalytics from "./pages/CampaignAnalytics"; // or adjust the path
+import Tasks from "./pages/Tasks";
+import InvoiceList from "./pages/InvoiceList";
+import CreateInvoice from "./pages/CreateInvoice";
+import EditInvoice from "./pages/EditInvoice";
+import InvoiceView from "./pages/InvoiceView";
+
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -94,18 +101,47 @@ function App() {
           />
 
         <Route
-            path="/campaign-analytics/:campaignId"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <CampaignAnalyticsWrapper />
-                </Layout>
-              </ProtectedRoute>
-            }
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Tasks />
+              </Layout>
+            </ProtectedRoute>
+          }
         />
 
 
+        <Route
+          path="/campaign-analytics/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CampaignAnalytics />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/email-templates" element={<EmailTemplates />} />
+
+        // Inside Routes
+        <Route path="/invoices" element={<InvoiceList />} />
+        <Route path="/invoices/create" element={<CreateInvoice />} />
+        
+// Add this route
+<Route path="/invoices/edit/:id" element={<EditInvoice />} />
+
+<Route
+  path="/invoices/view/:id"
+  element={
+    <ProtectedRoute>
+      <Layout>
+        <InvoiceView />
+      </Layout>
+    </ProtectedRoute>
+  }
+/>
 
           <Route
             path="/sales-analytics"

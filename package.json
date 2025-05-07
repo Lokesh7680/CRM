@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:reminder": "node scripts/task-reminder-cron.js"
   },
   "keywords": [],
   "author": "",
@@ -23,9 +24,12 @@
     "mjml": "^4.15.3",
     "mjml-browser": "^4.15.3",
     "mustache": "^4.2.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.1",
     "papaparse": "^5.5.2",
     "pdfkit": "^0.17.1",
     "prisma": "^6.7.0",
+    "puppeteer": "^24.8.1",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.3"
   },

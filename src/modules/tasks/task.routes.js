@@ -1,10 +1,35 @@
 const express = require("express");
-const { getTasks, createTask } = require("./task.controller");
+const {
+  getTasks,
+  getTaskById,
+  getTasksByOrg,
+  createTask,
+  updateTask,
+  deleteTask,
+} = require("./task.controller");
 const { authenticate } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get("/", authenticate, getTasks);
-router.post("/", authenticate, createTask);
+// 🔐 Protect all routes
+router.use(authenticate);
+
+// Get all tasks
+router.get("/", getTasks);
+
+// Get tasks by organization
+router.get("/org/:orgId", getTasksByOrg);
+
+// Get a specific task
+router.get("/:id", getTaskById);
+
+// Create a new task
+router.post("/", createTask);
+
+// Update a task
+router.put("/:id", updateTask);
+
+// Delete a task
+router.delete("/:id", deleteTask);
 
 module.exports = router;

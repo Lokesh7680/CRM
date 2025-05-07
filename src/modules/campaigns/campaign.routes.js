@@ -36,7 +36,6 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Delete a campaign (✅ FIXED)
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -45,6 +44,12 @@ router.delete("/:id", async (req, res) => {
     });
     res.json({ message: "Deleted" });
   } catch (err) {
+    console.error("Delete error:", err);
+
+    if (err.code === "P2025") {
+      return res.status(404).json({ error: "Campaign not found" });
+    }
+
     res.status(500).json({ error: "Delete failed" });
   }
 });

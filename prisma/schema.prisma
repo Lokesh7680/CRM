@@ -105,8 +105,8 @@ model Campaign {
   status         String
   startDate      DateTime
   endDate        DateTime
-  couponCode     String? // make optional first
-  expiryDate     DateTime? // make optional first
+  couponCode     String?
+  expiryDate     DateTime?
   organization   Organization        @relation(fields: [organizationId], references: [id])
   organizationId String
   createdAt      DateTime            @default(now())
@@ -116,12 +116,18 @@ model Campaign {
 model Task {
   id             String       @id @default(cuid())
   title          String
+  description    String?
   dueDate        DateTime
+  reminderTime   DateTime? // 🔔 Optional reminder
   priority       String // e.g., Low, Medium, High
+  status         String       @default("Pending") // e.g., Pending, In Progress, Completed
   completed      Boolean      @default(false)
+  assignedTo     String? // 🔁 Optional: user ID or name
+  createdBy      String
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Note {
@@ -167,19 +173,6 @@ model CampaignTemplate {
   createdAt DateTime @default(now())
 }
 
-model Invoice {
-  id             String       @id @default(cuid())
-  customerName   String
-  customerEmail  String
-  items          Json // Store array of line items
-  totalAmount    Float
-  status         String // e.g., Draft, Paid, Overdue
-  taxPercent     Float
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  organizationId String
-  createdAt      DateTime     @default(now())
-}
-
 model EmailLog {
   id          Int      @id @default(autoincrement())
   to_email    String
@@ -195,11 +188,49 @@ model CampaignAnalytics {
   userId     String
   opened     Boolean  @default(false)
   clicked    Boolean  @default(false)
-  linkId     String? // Optional
+  linkId     String?
   createdAt  DateTime @default(now())
 
-  campaign Campaign @relation(fields: [campaignId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, userId])
   @@unique([campaignId, userId, linkId])
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique
+  customerName   String
+  customerEmail  String?
+  customerPhone  String?
+  billingAddress String
+  invoiceDate    DateTime      @default(now())
+  dueDate        DateTime?
+  subTotal       Float
+  tax            Float
+  total          Float
+  notes          String?
+  status         InvoiceStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  organizationId String
+  items          InvoiceItem[]
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  name      String
+  quantity  Int
+  price     Float
+  total     Float
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+  OVERDUE
 }

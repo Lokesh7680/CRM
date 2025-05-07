@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import axios from "../api/axios";
 import {
   LayoutDashboard,
   Users,
@@ -16,12 +17,27 @@ const Sidebar = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  // useEffect(() => {
+  //   const fetchCampaigns = async () => {
+  //     try {
+  //       const res = await axios.get("/campaigns");
+  //       console.log("Fetched campaigns:", res.data); // 🔍 Check this in DevTools
+  //       setCampaigns(res.data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch campaigns:", err);
+  //     }
+  //   };
+  
+  //   fetchCampaigns();
+  // }, []);
+  
   return (
     <aside
       className={`${
@@ -60,7 +76,20 @@ const Sidebar = () => {
           <ClipboardList size={18} />
           {!collapsed && "Campaigns"}
         </Link>
-        <Link to="/campaign-analytics/cmaax628h00018u91ebxvfuic">Campaign Analytics</Link>
+
+        <Link to="/invoices" className="flex items-center gap-3 hover:text-yellow-300">
+          <ClipboardList size={18} />
+          {!collapsed && "Invoices"}
+        </Link>
+
+
+        {/* <Link to="/campaigns" className="flex items-center gap-3 hover:text-yellow-300">
+          <ClipboardList size={18} />
+          {!collapsed && "Campaigns A"}
+        </Link> */}
+        <Link to="/tasks">Tasks</Link>
+
+
         <Link to="/email-templates" className="flex items-center gap-3 hover:text-yellow-300">
           <ClipboardList size={18} />
           {!collapsed && "Email Templates"}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { Link } from "react-router-dom"; // ✅ make sure this is imported
 
 const Campaigns = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -22,13 +23,7 @@ const Campaigns = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        name,
-        type,
-        status,
-        startDate,
-        endDate,
-      };
+      const payload = { name, type, status, startDate, endDate };
 
       if (editId) {
         await axios.put(`/campaigns/${editId}`, payload);
@@ -42,7 +37,6 @@ const Campaigns = () => {
       setStatus("Draft");
       setStartDate("");
       setEndDate("");
-
       fetchCampaigns();
     } catch (err) {
       console.error("Error submitting campaign:", err);
@@ -61,23 +55,24 @@ const Campaigns = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/campaigns/${id}`);
+      alert("Campaign deleted successfully");
       fetchCampaigns();
     } catch (err) {
       console.error("Error deleting campaign:", err);
+      alert("Failed to delete campaign.");
     }
-  };
+  }
+    
 
   const handleSend = async (id) => {
     try {
-      const res = await axios.post(`/campaigns/queue/${id}`);
+      await axios.post(`/campaigns/queue/${id}`);
       alert("Emails Queued Successfully!");
     } catch (err) {
       console.error("Queueing failed:", err);
       alert("Failed to queue emails.");
     }
   };
-  
-   
 
   useEffect(() => {
     fetchCampaigns();
@@ -133,10 +128,7 @@ const Campaigns = () => {
           required
         />
 
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
           {editId ? "Update Campaign" : "Add Campaign"}
         </button>
       </form>
@@ -171,6 +163,13 @@ const Campaigns = () => {
                   Send Emails
                 </button>
 
+                {/* ✅ View Analytics Link */}
+                <Link
+                  to={`/campaign-analytics/${c.id}`}
+                  className="bg-gray-800 text-white px-3 py-1 rounded inline-block"
+                >
+                  View Analytics
+                </Link>
               </div>
             </li>
           ))}

@@ -17,7 +17,7 @@
         </mj-text>
 
         <!-- ✅ CLICK TRACKING BUTTON -->
-        <mj-button href="http://localhost:3000/api/analytics/track/click/{{campaignId}}/{{userId}}/main-offer" background-color="#007bff">
+        <mj-button href="https://crispy-zebra-977qqrpw467j3p96g-5000.app.github.dev/api/analytics/track/click/{{campaignId}}/{{userId}}/main-offer" background-color="#007bff">
           Redeem Offer
         </mj-button>
 
@@ -48,7 +48,7 @@
         <!-- ✅ OPEN TRACKING PIXEL -->
         <mj-raw>
           <img
-            src="http://localhost:3000/api/analytics/track/open/{{campaignId}}/{{userId}}"
+            src="https://crispy-zebra-977qqrpw467j3p96g-5000.app.github.dev/api/analytics/track/open/{{campaignId}}/{{userId}}"
             width="1"
             height="1"
             style="display:none;"

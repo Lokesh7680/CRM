@@ -27,23 +27,13 @@ router.post("/:campaignId", async (req, res) => {
       userId: contact.id,
       firstName: contact.firstName || "User",
       couponCode: campaign.couponCode || "WELCOME100",
-      expiryDate:
-        campaign.expiryDate?.toISOString().split("T")[0] || "2025-12-31",
+      expiryDate: campaign.expiryDate?.toISOString().split("T")[0] || "2025-12-31",
     }));
 
-    // ✅ Instead of axios, call your internal logic directly
-    for (const email of emailData) {
-      const {
-        to,
-        subject,
-        campaignId,
-        userId,
-        firstName,
-        couponCode,
-        expiryDate,
-      } = email;
+    // ✅ Use Celery spawn here (not axios)
+    const { spawn } = require("child_process");
 
-      const { spawn } = require("child_process");
+    emailData.forEach((email) => {
       spawn("celery", [
         "-A",
         "email_worker.worker",
@@ -51,16 +41,16 @@ router.post("/:campaignId", async (req, res) => {
         "send_email_task",
         "--args",
         JSON.stringify([
-          to,
-          subject,
-          campaignId,
-          userId,
-          firstName,
-          couponCode,
-          expiryDate,
+          email.to,
+          email.subject,
+          email.campaignId,
+          email.userId,
+          email.firstName,
+          email.couponCode,
+          email.expiryDate,
         ]),
       ]);
-    }
+    });
 
     res.json({ message: "Emails queued successfully!" });
   } catch (err) {
@@ -68,7 +58,6 @@ router.post("/:campaignId", async (req, res) => {
     res.status(500).json({ error: "Queueing failed" });
   }
 });
-
 
 // ✅ Route: Internal POST route for sending emails via Celery
 router.post("/queue-email", async (req, res) => {

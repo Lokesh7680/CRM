@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "../api/axios";
 import {
   PieChart,
@@ -15,7 +16,8 @@ import {
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF4C4C"];
 
-const CampaignAnalytics = ({ campaignId }) => {
+const CampaignAnalytics = () => {
+  const { id: campaignId } = useParams(); 
   const [analytics, setAnalytics] = useState({
     sent: 0,
     opened: 0,
@@ -23,17 +25,19 @@ const CampaignAnalytics = ({ campaignId }) => {
     failed: 0,
   });
 
-  const fetchAnalytics = async () => {
-    try {
-      const res = await axios.get(`/analytics/campaign/${campaignId}`);
-      setAnalytics(res.data);
-    } catch (err) {
-      console.error("Error fetching analytics:", err);
-    }
-  };
-
   useEffect(() => {
-    fetchAnalytics();
+    const fetchAnalytics = async () => {
+      try {
+        const res = await axios.get(`/analytics/campaign/${campaignId}`);
+        setAnalytics(res.data);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+      }
+    };
+
+    if (campaignId) {
+      fetchAnalytics();
+    }
   }, [campaignId]);
 
   const pieData = [
