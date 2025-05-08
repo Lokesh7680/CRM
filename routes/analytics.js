@@ -8,29 +8,29 @@ router.get("/track/open/:campaignId/:userId", async (req, res) => {
   const { campaignId, userId } = req.params;
 
   try {
-    // First ensure minimal fallback
-    await prisma.campaignAnalytics.create({
-      data: { campaignId, userId, opened: true },
+    // Ensure campaign and user exist before create/update
+    const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!campaign || !user) {
+      return res.status(404).json({ error: "Campaign or User not found" });
+    }
+
+    await prisma.campaignAnalytics.upsert({
+      where: {
+        campaignId_userId: {
+          campaignId,
+          userId,
+        },
+      },
+      update: { opened: true },
+      create: { campaignId, userId, opened: true },
     });
   } catch (err) {
-    if (err.code === "P2002") {
-      // Already exists, update instead
-      await prisma.campaignAnalytics.update({
-        where: {
-          campaignId_userId: {
-            campaignId,
-            userId,
-          },
-        },
-        data: { opened: true },
-      });
-    } else {
-      console.error("Error tracking open:", err);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+    console.error("Error tracking open:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 
-  // Return pixel
   const pixel = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9y9fG+YAAAAASUVORK5CYII=",
     "base64"
@@ -43,10 +43,20 @@ router.get("/track/open/:campaignId/:userId", async (req, res) => {
   res.end(pixel);
 });
 
+// === 2. Click Tracking ===
 router.get("/track/click/:campaignId/:userId/:linkId", async (req, res) => {
   const { campaignId, userId, linkId } = req.params;
 
   try {
+    // Ensure all related entities exist
+    const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const link = await prisma.campaignLink.findUnique({ where: { id: linkId } });
+
+    if (!campaign || !user || !link) {
+      return res.status(404).json({ error: "Campaign/User/Link not found" });
+    }
+
     await prisma.campaignAnalytics.upsert({
       where: {
         campaignId_userId_linkId: {
@@ -59,14 +69,13 @@ router.get("/track/click/:campaignId/:userId/:linkId", async (req, res) => {
       create: { campaignId, userId, linkId, clicked: true },
     });
 
-    const redirectUrl = "https://aitwater.com/index.php";
+    const redirectUrl = link.url || "https://aitwater.com/index.php";
     res.redirect(redirectUrl);
   } catch (err) {
     console.error("Error tracking click:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 // === 3. Campaign Analytics Summary ===
 router.get("/campaign/:id", async (req, res) => {

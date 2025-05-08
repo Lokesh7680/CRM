@@ -20,6 +20,11 @@ import InvoiceView from "./pages/InvoiceView";
 import Home from "./pages/Home";
 import AppLayout from "./components/AppLayout";
 import { useAuth } from "./context/AuthContext";
+import LeadsAnalytics from "./pages/LeadsAnalytics";
+import OpportunitiesAnalytics from "./pages/OpportunitiesAnalytics";
+import OpportunitiesBoard from "./pages/OpportunitiesBoard";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -35,7 +40,10 @@ function App() {
         <Route path="/home" element={<ProtectedRoute><AppLayout><Home /></AppLayout></ProtectedRoute>} />
         <Route path="/contacts" element={<ProtectedRoute><AppLayout><Contacts /></AppLayout></ProtectedRoute>} />
         <Route path="/leads" element={<ProtectedRoute><AppLayout><Leads /></AppLayout></ProtectedRoute>} />
+        <Route path="/leads-analytics" element={<ProtectedRoute><AppLayout><LeadsAnalytics /></AppLayout></ProtectedRoute>} />
         <Route path="/opportunities" element={<ProtectedRoute><AppLayout><Opportunities /></AppLayout></ProtectedRoute>} />
+        <Route path="/opportunities-analytics" element={<ProtectedRoute><AppLayout><OpportunitiesAnalytics /></AppLayout></ProtectedRoute>} />
+        <Route path="/opportunities-board" element={<ProtectedRoute><AppLayout><OpportunitiesBoard /></AppLayout></ProtectedRoute>} />
         <Route path="/sales" element={<ProtectedRoute><AppLayout><Sales /></AppLayout></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><AppLayout><Campaigns /></AppLayout></ProtectedRoute>} />
         <Route path="/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
@@ -50,6 +58,7 @@ function App() {
         <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

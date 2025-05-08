@@ -1,78 +1,51 @@
+// src/components/layout/Sidebar.jsx
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
-  ShoppingCart,
-  FileText,
-  PieChart,
+  Briefcase,
+  BarChart,
   Mail,
-  BarChart2,
-  Settings,
-  LogOut,
+  ClipboardList,
+  FileText,
+  DollarSign,
 } from "lucide-react";
 
-const Sidebar = () => {
-  const navItem = (to, label, Icon) => (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700 ${
-          isActive ? "text-blue-700 font-semibold bg-blue-100" : "text-blue-600"
-        }`
-      }
-    >
-      <Icon size={18} />
-      <span>{label}</span>
-    </NavLink>
-  );
+const navItems = [
+  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Contacts", icon: Users, path: "/contacts" },
+  { name: "Leads", icon: Briefcase, path: "/leads" },
+  { name: "Opportunities", icon: DollarSign, path: "/opportunities" },
+  { name: "Campaigns", icon: Mail, path: "/campaigns" },
+  { name: "Tasks", icon: ClipboardList, path: "/tasks" },
+  { name: "Sales Analytics", icon: BarChart, path: "/sales-analytics" },
+  { name: "Monthly Revenue", icon: FileText, path: "/monthly-revenue" },
+];
 
+export default function Sidebar() {
   return (
-    <section className="navigation w-64 min-h-screen bg-white border-r border-gray-200 p-4 space-y-6">
-      <div>
-        <p className="text-xs text-gray-500 uppercase mb-2">Main</p>
-        <div className="space-y-1">
-          {navItem("/dashboard", "Dashboard", LayoutDashboard)}
-          {navItem("/contacts", "Contacts", Users)}
-          {navItem("/leads", "Leads", ClipboardList)}
-          {navItem("/opportunities", "Opportunities", ClipboardList)}
-        </div>
+    <aside className="w-64 h-screen bg-white border-r shadow-md p-4 fixed z-20">
+      <div className="mb-10 px-4">
+        <h1 className="text-2xl font-bold text-blue-700 tracking-wide">Akshaya CRM</h1>
       </div>
-
-      <div>
-        <p className="text-xs text-gray-500 uppercase mb-2">Sales</p>
-        <div className="space-y-1">
-          {navItem("/sales", "Sales", ShoppingCart)}
-          {navItem("/invoices", "Invoices", FileText)}
-          {navItem("/sales-analytics", "Sales Analytics", PieChart)}
-          {navItem("/analytics/monthly-revenue", "Monthly Revenue", PieChart)}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-xs text-gray-500 uppercase mb-2">Marketing</p>
-        <div className="space-y-1">
-          {navItem("/campaigns", "Campaigns", ClipboardList)}
-          {navItem("/email-templates", "Email Templates", Mail)}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-xs text-gray-500 uppercase mb-2">Productivity</p>
-        <div className="space-y-1">
-          {navItem("/tasks", "Tasks", ClipboardList)}
-          {navItem("/reports", "Reports", BarChart2)}
-        </div>
-      </div>
-
-      <div className="mt-auto border-t pt-4">
-        <div className="space-y-1">
-          {navItem("/settings", "Settings", Settings)}
-          {navItem("/logout", "Logout", LogOut)}
-        </div>
-      </div>
-    </section>
+      <nav className="space-y-2">
+        {navItems.map(({ name, icon: Icon, path }) => (
+          <NavLink
+            to={path}
+            key={name}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-blue-100 text-blue-800 font-semibold"
+                  : "text-gray-700 hover:bg-blue-50"
+              }`
+            }
+          >
+            <Icon size={18} className="shrink-0" />
+            <span>{name}</span>
+          </NavLink>
+        ))}
+      </nav>
+    </aside>
   );
-};
-
-export default Sidebar;
+}

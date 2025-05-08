@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import { unparse } from "papaparse";
 import { toast } from "react-toastify";
+import { Mail, Phone, Globe, Plus, X, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 
 const Leads = () => {
@@ -10,22 +14,12 @@ const Leads = () => {
   const [editingId, setEditingId] = useState(null);
   const [filterStatus, setFilterStatus] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const navigate = useNavigate();
 
   const sourceOptions = [
-    "Website",
-    "Social Media",
-    "Email Campaigns",
-    "Referrals",
-    "Paid Ads",
-    "Events",
-    "Cold Calls/Emails",
-    "Organic Search"
+    "Website", "Social Media", "Email Campaigns", "Referrals",
+    "Paid Ads", "Events", "Cold Calls/Emails", "Organic Search"
   ];
 
   const fetchLeads = async () => {
@@ -33,34 +27,27 @@ const Leads = () => {
       const res = await axios.get("/leads");
       setLeads(res.data);
     } catch (err) {
-      console.error("Failed to fetch leads:", err);
       toast.error("Failed to fetch leads");
     }
   };
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filterStatus, searchQuery]);
+  useEffect(() => { fetchLeads(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
         await axios.put(`/leads/${editingId}`, form);
-        toast.success("Lead updated successfully!");
+        toast.success("Lead updated");
       } else {
         await axios.post("/leads", form);
-        toast.success("Lead added successfully!");
+        toast.success("Lead added");
       }
       setForm({ name: "", email: "", phone: "", status: "New", source: "" });
       setEditingId(null);
+      setShowForm(false);
       fetchLeads();
     } catch (err) {
-      console.error("Error saving lead:", err);
       toast.error("Error saving lead");
     }
   };
@@ -68,22 +55,22 @@ const Leads = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/leads/${id}`);
-      toast.success("Lead deleted successfully!");
+      toast.success("Lead deleted");
       fetchLeads();
     } catch (err) {
-      console.error("Error deleting lead:", err);
       toast.error("Error deleting lead");
     }
   };
 
   const handleEdit = (lead) => {
     setEditingId(lead.id);
+    setShowForm(true);
     setForm({
       name: lead.name,
       email: lead.email,
       phone: lead.phone || "",
       source: lead.source || "",
-      status: lead.status
+      status: lead.status,
     });
   };
 
@@ -95,44 +82,10 @@ const Leads = () => {
         status: "Active",
       });
       await axios.delete(`/leads/${lead.id}`);
-      toast.success("Lead converted to contact!");
+      toast.success("Converted to contact");
       fetchLeads();
     } catch (err) {
-      console.error("Conversion failed:", err);
       toast.error("Failed to convert lead");
-    }
-  };
-
-  const confirm = (action, lead) => {
-    setSelectedLead(lead);
-    setConfirmAction(() => () => action(lead));
-    setShowConfirm(true);
-  };
-
-  const handleExportCSV = () => {
-    try {
-      const filtered = leads.filter(
-        (lead) =>
-          (filterStatus === "All" || lead.status === filterStatus) &&
-          lead.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
-      if (filtered.length === 0) {
-        toast.info("No data to export");
-        return;
-      }
-
-      const csvData = unparse(filtered);
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", "leads.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      toast.error("Failed to export CSV");
-      console.error(error);
     }
   };
 
@@ -142,194 +95,90 @@ const Leads = () => {
       lead.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const paginatedLeads = filteredLeads.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Leads</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-3xl font-bold text-blue-700">Leads</h2>
+        <div className="flex gap-3">
+          <Button onClick={() => navigate("/leads-analytics")} variant="outline">
+            <BarChart3 className="w-4 h-4 mr-2" /> View Analytics
+          </Button>
+          {!showForm && (
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="w-4 h-4 mr-2" /> Add Lead
+            </Button>
+          )}
+        </div>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mb-6 space-y-2">
-        <input
-          type="text"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full border p-2"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="w-full border p-2"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          className="w-full border p-2"
-        />
-        <select
-          value={form.source}
-          onChange={(e) => setForm({ ...form, source: e.target.value })}
-          className="w-full border p-2"
-        >
-          <option value="">Select Source</option>
-          {sourceOptions.map((src) => (
-            <option key={src} value={src}>{src}</option>
-          ))}
-        </select>
-        <select
-          value={form.status}
-          onChange={(e) => setForm({ ...form, status: e.target.value })}
-          className="w-full border p-2"
-        >
-          <option value="New">New</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Qualified">Qualified</option>
-        </select>
-        <button
-          type="submit"
-          className={`${
-            editingId ? "bg-green-600" : "bg-blue-600"
-          } text-white px-4 py-2 rounded`}
-        >
-          {editingId ? "Update Lead" : "Add Lead"}
-        </button>
-      </form>
+      {showForm && (
+        <div className="bg-white p-6 rounded-lg shadow mb-6 animate-fade-in">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">{editingId ? "Edit Lead" : "Create Lead"}</h3>
+            <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-red-500">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <Input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+            <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <select value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className="border rounded p-2">
+              <option value="">Select Source</option>
+              {sourceOptions.map((src) => <option key={src} value={src}>{src}</option>)}
+            </select>
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="border rounded p-2">
+              <option value="New">New</option>
+              <option value="Contacted">Contacted</option>
+              <option value="Qualified">Qualified</option>
+            </select>
+            <Button type="submit" className="w-full md:col-span-2">{editingId ? "Update Lead" : "Add Lead"}</Button>
+          </form>
+        </div>
+      )}
 
-      <div className="mb-4 flex flex-col sm:flex-row gap-4">
-        <div>
-          <label htmlFor="statusFilter" className="mr-2 font-medium">
-            Filter by Status:
-          </label>
-          <select
-            id="statusFilter"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="border p-2"
-          >
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <div className="flex items-center gap-2">
+          <label className="font-medium">Status:</label>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border rounded p-2">
             <option value="All">All</option>
             <option value="New">New</option>
             <option value="Contacted">Contacted</option>
             <option value="Qualified">Qualified</option>
           </select>
         </div>
-
-        <div>
-          <label htmlFor="search" className="mr-2 font-medium">
-            Search by Name:
-          </label>
-          <input
-            id="search"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border p-2"
-            placeholder="Enter name"
-          />
+        <div className="flex items-center gap-2">
+          <label className="font-medium">Search:</label>
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by name" />
         </div>
       </div>
 
-      <button
-        onClick={handleExportCSV}
-        className="bg-gray-700 text-white px-4 py-2 rounded mb-4"
-      >
-        Export to CSV
-      </button>
-
-      <ul className="space-y-4">
-        {paginatedLeads.map((lead) => (
-          <li key={lead.id} className="border p-4 rounded shadow">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold">{lead.name}</p>
-                <p className="text-sm">{lead.email}</p>
-                <p className="text-sm">{lead.phone}</p>
-                <p className="text-sm">{lead.source}</p>
-                <p className="text-sm text-gray-500">{lead.status}</p>
+      {/* Lead List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filteredLeads.map((lead) => (
+          <div key={lead.id} className="border rounded-xl bg-white p-5 shadow-sm hover:shadow-md transition">
+            <div className="flex justify-between items-start gap-3">
+              <div className="space-y-1 w-full">
+                <h3 className="text-lg font-semibold text-blue-800 line-clamp-1">{lead.name}</h3>
+                <p className="text-sm text-gray-600 flex items-center gap-1 line-clamp-1"><Mail className="w-4 h-4" /> {lead.email}</p>
+                <p className="text-sm text-gray-600 flex items-center gap-1"><Phone className="w-4 h-4" /> {lead.phone}</p>
+                <p className="text-sm text-gray-600 flex items-center gap-1"><Globe className="w-4 h-4" /> {lead.source}</p>
+                <span className={`inline-block mt-1 text-xs font-medium px-2 py-1 rounded ${
+                  lead.status === "New" ? "bg-yellow-100 text-yellow-800" :
+                  lead.status === "Qualified" ? "bg-green-100 text-green-700" :
+                  "bg-blue-100 text-blue-700"
+                }`}>{lead.status}</span>
               </div>
-              <div className="space-x-2">
-                <button
-                  onClick={() => handleEdit(lead)}
-                  className="text-blue-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => confirm(() => handleDelete(lead.id), lead)}
-                  className="text-red-600"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => confirm(handleConvertToContact, lead)}
-                  className="text-green-600"
-                >
-                  Convert
-                </button>
+              <div className="flex flex-col gap-1 items-end text-sm font-medium">
+                <button onClick={() => handleEdit(lead)} className="text-blue-600 hover:underline">Edit</button>
+                <button onClick={() => handleDelete(lead.id)} className="text-red-600 hover:underline">Delete</button>
+                <button onClick={() => handleConvertToContact(lead)} className="text-green-600 hover:underline">Convert</button>
               </div>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-6 flex justify-center items-center gap-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="font-semibold">Page {currentPage}</span>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) =>
-              prev < Math.ceil(filteredLeads.length / itemsPerPage)
-                ? prev + 1
-                : prev
-            )
-          }
-          disabled={
-            currentPage >= Math.ceil(filteredLeads.length / itemsPerPage)
-          }
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg text-center max-w-sm w-full">
-            <p className="mb-4">Are you sure you want to proceed?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => {
-                  confirmAction();
-                  setShowConfirm(false);
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="bg-gray-300 px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 };
