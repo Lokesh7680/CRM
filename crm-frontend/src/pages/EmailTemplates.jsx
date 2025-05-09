@@ -1,13 +1,20 @@
+// src/pages/EmailTemplates.jsx
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
-import mjml2html from "mjml-browser";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Card from "@/components/ui/Card";
+import { Eye, Trash2, BarChart2, Copy, Pencil } from "lucide-react";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const EmailTemplates = () => {
+  const [templates, setTemplates] = useState([]);
   const [name, setName] = useState("");
   const [mjml, setMjml] = useState("");
-  const [templates, setTemplates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [sendingId, setSendingId] = useState(null);
+  const [htmlPreview, setHtmlPreview] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [editId, setEditId] = useState(null);
 
   const fetchTemplates = async () => {
     try {
@@ -18,119 +25,122 @@ const EmailTemplates = () => {
     }
   };
 
-  const handleSave = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/templates", { name, mjml });
+      if (editId) {
+        await axios.put(`/templates/${editId}`, { name, mjml });
+        toast.success("Template updated");
+      } else {
+        await axios.post("/templates", { name, mjml });
+        toast.success("Template saved");
+      }
       setName("");
       setMjml("");
+      setEditId(null);
       fetchTemplates();
     } catch (err) {
-      console.error("Error saving template:", err);
+      toast.error("Failed to save template");
     }
   };
 
-  const handleSendTest = async (template) => {
+  const handleDelete = async (id) => {
     try {
-      setSendingId(template.id);
-  
-      // Convert MJML to HTML
-      const rendered = mjml2html(template.mjml);
-      const html = rendered.html;
-  
-      await axios.post("/queue-email", {
-        emails: [
-          {
-            to: "sanjuramshetty@gmail.com", // ✅ Replace with your email
-            subject: `Test Email: ${template.name}`,
-            campaignId: template.id,
-            html, // Sending HTML body
-          },
-        ],
-      });
-  
-      alert("Test email queued successfully!");
+      await axios.delete(`/templates/${id}`);
+      fetchTemplates();
+      toast.success("Deleted");
     } catch (err) {
-      console.error("Error sending test email:", err);
-      alert("Failed to queue email.");
-    } finally {
-      setSendingId(null);
+      toast.error("Delete failed");
     }
   };
-  
+
+  const handlePreview = async (mjml) => {
+    try {
+      const res = await axios.post("/templates/render", { mjml });
+      setHtmlPreview(res.data.html);
+    } catch {
+      toast.error("Failed to render MJML");
+    }
+  };
+
+  const handleCopy = (mjml) => {
+    navigator.clipboard.writeText(mjml);
+    toast.info("MJML copied");
+  };
+
+  const handleEdit = (template) => {
+    setEditId(template.id);
+    setName(template.name);
+    setMjml(template.mjml);
+  };
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
-  let renderedHtml = "";
-  try {
-    renderedHtml = mjml ? mjml2html(mjml).html : "";
-  } catch (err) {
-    renderedHtml = "<p class='text-red-600'>⚠️ MJML parsing error.</p>";
-  }
-
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">📨 Email Templates</h2>
+    <div className="p-6 space-y-6">
+      <h2 className="text-3xl font-bold">Email Templates</h2>
 
-      <form onSubmit={handleSave} className="space-y-4 mb-8 bg-gray-100 p-6 rounded shadow">
-        <input
-          type="text"
-          placeholder="Template Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border border-gray-300 p-2 rounded w-full"
-          required
-        />
-
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+        <Input label="Template Name" value={name} onChange={(e) => setName(e.target.value)} required />
         <textarea
-          placeholder="<mjml>...</mjml>"
+          placeholder="Paste MJML here"
           value={mjml}
           onChange={(e) => setMjml(e.target.value)}
-          rows={10}
-          className="border border-gray-300 p-2 rounded w-full font-mono"
+          rows={8}
+          className="border p-2 rounded"
           required
         />
-
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >
-          Save Template
-        </button>
+        <Button type="submit">{editId ? "Update Template" : "Save Template"}</Button>
       </form>
 
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-2">Live Preview</h3>
-        <div
-          className="border rounded p-4 bg-white shadow"
-          dangerouslySetInnerHTML={{ __html: renderedHtml }}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {templates.map((t) => (
+<Card key={t.id} className="p-4 rounded-2xl border shadow-sm hover:shadow-lg transition-all">
+  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    {/* Left: Title + Snippet */}
+    <div className="flex-1">
+      <h4 className="text-lg font-semibold text-gray-900">{t.name}</h4>
+      <p className="text-sm text-gray-500 line-clamp-2">{t.mjml}</p>
+    </div>
+
+    {/* Right: Actions */}
+    <div className="flex flex-wrap items-center gap-2 justify-end">
+      <Button size="icon" variant="outline" onClick={() => handlePreview(t.mjml)} title="Preview">
+        <Eye className="w-4 h-4" />
+      </Button>
+      <Button size="icon" variant="outline" onClick={() => handleCopy(t.mjml)} title="Copy">
+        <Copy className="w-4 h-4" />
+      </Button>
+      <Button size="icon" variant="outline" onClick={() => handleEdit(t)} title="Edit">
+        <Pencil className="w-4 h-4" />
+      </Button>
+      <Link to={`/analytics/template/${t.id}`} title="Analytics">
+        <Button size="icon" variant="outline">
+          <BarChart2 className="w-4 h-4" />
+        </Button>
+      </Link>
+      <Button
+        size="icon"
+        variant="destructive"
+        onClick={() => handleDelete(t.id)}
+        title="Delete"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  </div>
+</Card>
+        ))}
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-2">📁 Saved Templates</h3>
-        <ul className="space-y-4">
-          {templates.map((t) => (
-            <li key={t.id} className="border p-4 rounded shadow bg-white">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-gray-800">{t.name}</span>
-                <button
-                  onClick={() => handleSendTest(t)}
-                  disabled={sendingId === t.id}
-                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
-                >
-                  {sendingId === t.id ? "Sending..." : "Send Test Email"}
-                </button>
-              </div>
-              <pre className="whitespace-pre-wrap text-sm text-gray-600 bg-gray-100 p-2 rounded">
-                {t.mjml}
-              </pre>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {htmlPreview && (
+        <div className="bg-white rounded shadow p-4 mt-6">
+          <h3 className="text-lg font-semibold mb-2">Live Preview</h3>
+          <div dangerouslySetInnerHTML={{ __html: htmlPreview }} />
+        </div>
+      )}
     </div>
   );
 };

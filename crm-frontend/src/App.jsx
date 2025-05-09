@@ -17,6 +17,7 @@ import InvoiceList from "./pages/InvoiceList";
 import CreateInvoice from "./pages/CreateInvoice";
 import EditInvoice from "./pages/EditInvoice";
 import InvoiceView from "./pages/InvoiceView";
+import TemplateAnalytics from "./pages/TemplateAnalytics";
 import Home from "./pages/Home";
 import AppLayout from "./components/AppLayout";
 import { useAuth } from "./context/AuthContext";
@@ -25,11 +26,18 @@ import OpportunitiesAnalytics from "./pages/OpportunitiesAnalytics";
 import OpportunitiesBoard from "./pages/OpportunitiesBoard";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import TaskCalendar from "./pages/TaskCalendar";
 
 function ProtectedRoute({ children }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="p-6 text-center text-gray-500">Checking authentication...</div>; // or show a loader
+  }
+
+  return user ? children : <Navigate to="/login" replace />;
 }
+
 
 function App() {
   return (
@@ -47,8 +55,19 @@ function App() {
         <Route path="/sales" element={<ProtectedRoute><AppLayout><Sales /></AppLayout></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><AppLayout><Campaigns /></AppLayout></ProtectedRoute>} />
         <Route path="/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
+        <Route path="/tasks/calendar" element={<ProtectedRoute><AppLayout><TaskCalendar /></AppLayout></ProtectedRoute>} />
         <Route path="/campaign-analytics/:id" element={<ProtectedRoute><AppLayout><CampaignAnalytics /></AppLayout></ProtectedRoute>} />
         <Route path="/email-templates" element={<ProtectedRoute><AppLayout><EmailTemplates /></AppLayout></ProtectedRoute>} />
+        <Route
+          path="/analytics/template/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <TemplateAnalytics />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/invoices" element={<ProtectedRoute><AppLayout><InvoiceList /></AppLayout></ProtectedRoute>} />
         <Route path="/invoices/create" element={<ProtectedRoute><AppLayout><CreateInvoice /></AppLayout></ProtectedRoute>} />
         <Route path="/invoices/edit/:id" element={<ProtectedRoute><AppLayout><EditInvoice /></AppLayout></ProtectedRoute>} />

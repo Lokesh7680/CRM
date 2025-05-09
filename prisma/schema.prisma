@@ -64,9 +64,7 @@ model Contact {
   createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
-
-  // 🔽 Add this line for back-reference
-  opportunities Opportunity[]
+  opportunities  Opportunity[]
 }
 
 model Lead {
@@ -75,12 +73,11 @@ model Lead {
   email          String
   phone          String?
   source         String?
-  status         String   @default("New") // e.g., New, Contacted, Qualified, Lost
+  status         String   @default("New")
   organizationId String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Opportunity {
@@ -111,6 +108,15 @@ model Campaign {
   organizationId String
   createdAt      DateTime            @default(now())
   analytics      CampaignAnalytics[]
+  links          CampaignLink[]
+}
+
+model CampaignLink {
+  id         String    @id @default(cuid())
+  url        String
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String
+  createdAt  DateTime  @default(now())
 }
 
 model Task {
@@ -118,11 +124,11 @@ model Task {
   title          String
   description    String?
   dueDate        DateTime
-  reminderTime   DateTime? // 🔔 Optional reminder
-  priority       String // e.g., Low, Medium, High
-  status         String       @default("Pending") // e.g., Pending, In Progress, Completed
+  reminderTime   DateTime?
+  priority       String
+  status         String       @default("Pending")
   completed      Boolean      @default(false)
-  assignedTo     String? // 🔁 Optional: user ID or name
+  assignedTo     String?
   createdBy      String
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
@@ -133,8 +139,8 @@ model Task {
 model Note {
   id             String       @id @default(cuid())
   content        String
-  entityType     String // e.g., Lead, Contact, Opportunity
-  entityId       String // Reference ID of the entity
+  entityType     String
+  entityId       String
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   createdAt      DateTime     @default(now())
@@ -144,7 +150,7 @@ model Product {
   id             String          @id @default(cuid())
   name           String
   sku            String          @unique
-  price          Float // ✅ This must exist
+  price          Float
   stock          Int
   supplierId     String?
   supplier       Supplier?       @relation(fields: [supplierId], references: [id])
@@ -159,7 +165,7 @@ model PurchaseOrder {
   productId      String
   product        Product      @relation(fields: [productId], references: [id])
   quantity       Int
-  status         String // e.g., Requested, Ordered, Received
+  status         String
   organization   Organization @relation(fields: [organizationId], references: [id])
   organizationId String
   createdAt      DateTime     @default(now())

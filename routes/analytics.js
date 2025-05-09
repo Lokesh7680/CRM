@@ -8,14 +8,6 @@ router.get("/track/open/:campaignId/:userId", async (req, res) => {
   const { campaignId, userId } = req.params;
 
   try {
-    // Ensure campaign and user exist before create/update
-    const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!campaign || !user) {
-      return res.status(404).json({ error: "Campaign or User not found" });
-    }
-
     await prisma.campaignAnalytics.upsert({
       where: {
         campaignId_userId: {
@@ -48,28 +40,23 @@ router.get("/track/click/:campaignId/:userId/:linkId", async (req, res) => {
   const { campaignId, userId, linkId } = req.params;
 
   try {
-    // Ensure all related entities exist
-    const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    const link = await prisma.campaignLink.findUnique({ where: { id: linkId } });
-
-    if (!campaign || !user || !link) {
-      return res.status(404).json({ error: "Campaign/User/Link not found" });
-    }
-
-    await prisma.campaignAnalytics.upsert({
-      where: {
-        campaignId_userId_linkId: {
-          campaignId,
-          userId,
-          linkId,
-        },
-      },
-      update: { clicked: true },
-      create: { campaignId, userId, linkId, clicked: true },
+    const existing = await prisma.campaignAnalytics.findFirst({
+      where: { campaignId, userId },
     });
 
-    const redirectUrl = link.url || "https://aitwater.com/index.php";
+    if (!existing) {
+      await prisma.campaignAnalytics.create({
+        data: { campaignId, userId, linkId, clicked: true },
+      });
+    } else {
+      await prisma.campaignAnalytics.updateMany({
+        where: { campaignId, userId },
+        data: { clicked: true },
+      });
+    }
+
+    const link = await prisma.campaignLink.findUnique({ where: { id: linkId } });
+    const redirectUrl = link?.url || "https://aitwater.com/index.php";
     res.redirect(redirectUrl);
   } catch (err) {
     console.error("Error tracking click:", err);

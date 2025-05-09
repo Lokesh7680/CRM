@@ -18,7 +18,8 @@ const supplierRoutes = require("./modules/inventory/supplier.routes");
 const orderRoutes = require("./modules/inventory/order.routes");
 // const invoiceRoutes = require("./modules/invoicing/invoice.routes");
 const invoiceRoutes = require("../routes/invoiceRoutes");
-
+const templateRoutes = require("../routes/templates");
+const templateAnalyticsRoutes = require("../routes/templateAnalytics.routes");
 
 const app = express();
 
@@ -44,6 +45,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/templates", templateRoutes); // ✅ ensure this matches the frontend path
+app.use("/api/analytics", templateAnalyticsRoutes);
 
 
 app.get("/", (req, res) => {

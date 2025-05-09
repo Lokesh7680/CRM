@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ChevronLeft, Bell, UserCircle, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
@@ -37,25 +37,26 @@ const Topbar = () => {
           <span className="text-sm font-medium hidden sm:inline">Back</span>
         </button>
         <nav className="flex items-center gap-6 text-sm font-medium">
-          <a href="/dashboard" className="hover:underline">Dashboard</a>
-          <a href="/contacts" className="hover:underline">Contacts</a>
-          <a href="/leads" className="hover:underline">Leads</a>
-          <a href="/opportunities" className="hover:underline">Opportunities</a>
+          <Link to="/dashboard" className="hover:underline">Dashboard</Link>
+          <Link to="/contacts" className="hover:underline">Contacts</Link>
+          <Link to="/leads" className="hover:underline">Leads</Link>
+          <Link to="/opportunities" className="hover:underline">Opportunities</Link>
 
           <Dropdown label="Sales">
-            <a href="/sales" className="block px-4 py-2 hover:bg-gray-100">Sales</a>
-            <a href="/invoices" className="block px-4 py-2 hover:bg-gray-100">Invoices</a>
-            <a href="/sales-analytics" className="block px-4 py-2 hover:bg-gray-100">Sales Analytics</a>
-            <a href="/analytics/monthly-revenue" className="block px-4 py-2 hover:bg-gray-100">Monthly Revenue</a>
+            <Link to="/sales" className="block px-4 py-2 hover:bg-gray-100">Sales</Link>
+            <Link to="/invoices" className="block px-4 py-2 hover:bg-gray-100">Invoices</Link>
+            <Link to="/sales-analytics" className="block px-4 py-2 hover:bg-gray-100">Sales Analytics</Link>
+            <Link to="/analytics/monthly-revenue" className="block px-4 py-2 hover:bg-gray-100">Monthly Revenue</Link>
           </Dropdown>
 
           <Dropdown label="Marketing">
-            <a href="/campaigns" className="block px-4 py-2 hover:bg-gray-100">Campaigns</a>
-            <a href="/email-templates" className="block px-4 py-2 hover:bg-gray-100">Email Templates</a>
+            <Link to="/campaigns" className="block px-4 py-2 hover:bg-gray-100">Campaigns</Link>
+            <Link to="/email-templates" className="block px-4 py-2 hover:bg-gray-100">Email Templates</Link>
           </Dropdown>
 
           <Dropdown label="Productivity">
             <a href="/tasks" className="block px-4 py-2 hover:bg-gray-100">Tasks</a>
+            <a href="/tasks/calendar" className="block px-4 py-2 hover:bg-gray-100">Task Calendar</a>
             <a href="/reports" className="block px-4 py-2 hover:bg-gray-100">Reports</a>
           </Dropdown>
         </nav>

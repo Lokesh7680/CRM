@@ -12,6 +12,7 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF4C4C"];
@@ -41,10 +42,10 @@ const CampaignAnalytics = () => {
   }, [campaignId]);
 
   const pieData = [
-    { name: "Sent", value: analytics.sent },
     { name: "Opened", value: analytics.opened },
     { name: "Clicked", value: analytics.clicked },
     { name: "Failed", value: analytics.failed },
+    { name: "Not Opened", value: analytics.sent - analytics.opened },
   ];
 
   const barData = [
@@ -78,6 +79,7 @@ const CampaignAnalytics = () => {
                 ))}
               </Pie>
               <Tooltip />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -90,6 +92,7 @@ const CampaignAnalytics = () => {
               <XAxis dataKey="name" />
               <YAxis allowDecimals={false} />
               <Tooltip />
+              <Legend />
               <Bar dataKey="count" fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
